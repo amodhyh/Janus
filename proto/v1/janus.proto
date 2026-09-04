@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package janus.v1;
+
+option go_package = "janus/internal/pb/v1;pbv1";
+
+
+enum Action {
+    ACTION_UNSPECIFIED = 0;                                      
+    ACTION_ALLOW = 1;                                            
+    ACTION_DENY = 2;                                             
+    ACTION_MUTATE = 3;     
+
+}
+
+// Sent from Go proxy --> Python Service
+message InspectionRequest {
+    string request_id = 1;
+    string raw_prompt = 2;
+  
+}
+
+
+// Sent from Python Service --> to Go Proxy
+message InspectionResponse {
+    Action action = 1;
+    string mutated_prompt = 2;
+    string reason = 3;
+  
+}
+
+    // The Security Engine service running in Python               
+service SecurityEngine {
+  rpc InspectPrompt(InspectionRequest) returns (InspectionResponse);
+}
