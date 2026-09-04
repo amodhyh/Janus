@@ -8,7 +8,7 @@
 *.html
 
 # Build artifacts
-janus
+/janus
 janus.exe
 *.exe
 *.test
