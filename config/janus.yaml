@@ -1,0 +1,25 @@
+server:
+  port: 8080
+  debug: true
+
+redis:
+  address: "localhost:6379"
+
+providers:
+  openai:
+    base_url: "https://api.openai.com/v1"
+    # In production, NEVER hardcode keys here. We use ENV variable substitution later.
+    api_key: "sk-your-openai-key" 
+  gemini:
+    base_url: "https://generativelanguage.googleapis.com/v1beta"
+    api_key: "your-gemini-key"
+
+routes:
+  - path: "/v1/chat/completions"
+    primary_provider: "openai"
+    fallback_provider: "gemini"
+    security:
+      enabled: true
+      slm_endpoint: "http://localhost:8000/v1/scan"
+    rate_limit:
+      requests_per_minute: 60
