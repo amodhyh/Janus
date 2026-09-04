@@ -6,3 +6,10 @@
 !README.md
 !readme.md
 *.html
+
+# Build artifacts
+janus
+janus.exe
+*.exe
+*.test
+*.out
