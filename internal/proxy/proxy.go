@@ -1,7 +1,6 @@
 package proxy
 
 import (
-	"net/http"
 	"net/http/httputil"
 	"net/url"
 )
@@ -18,8 +17,16 @@ func NewJanusProxy(target string) (*httputil.ReverseProxy, error) {
 	proxy := httputil.NewSingleHostReverseProxy(remote)
 
 	// 3. The "Director" modifies the request before it leaves Janus
-	proxy.Rewrite = func(req *http.Request) {
+	proxy.Rewrite = func(r *httputil.ProxyRequest) {
+		// Point the request to the target provider (e.g., Ollama, OpenAI)
+		r.SetURL(remote)
 
+		// Set the Host header to match the target provider.
+		// Many cloud providers (like OpenAI) will reject requests if the Host header is incorrect.
+		r.Out.Host = remote.Host
+
+		// Standard proxy headers
+		r.SetXForwarded()
 	}
 
 	return proxy, nil

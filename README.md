@@ -4,6 +4,8 @@ Janus is an ultra-low latency reverse proxy designed to secure Large Language Mo
 
 Janus provides real-time Prompt Injection Defense and streaming Personally Identifiable Information (PII) redaction while optimizing for minimal throughput overhead.
 
+> **Project Status (Active Development):** The Go-based Proxy Foundation (config loading, routing, body interception) is fully implemented. The gRPC IPC bridge and Python Security Engine (SLM pipeline) are currently under active development.
+
 ## Architectural Diagram
 
 The following diagram illustrates the hybrid architecture of Janus, distinguishing between the high-concurrency data path and the semantic analysis engine.

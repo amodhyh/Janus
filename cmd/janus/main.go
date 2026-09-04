@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"janus/internal/config"
+	"janus/internal/proxy"
 )
 
 func Dummy(w http.ResponseWriter, r *http.Request) {
@@ -41,7 +42,31 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /v1/chat/completions", Dummy)
+	
+	// Map configured routes to the proxy
+	for _, route := range cfg.Routes {
+		providerName := route.PrimaryProvider
+		providerCfg, exists := cfg.Providers[providerName]
+		if !exists {
+			log.Fatalf("Provider %s not found in config for route %s", providerName, route.Path)
+		}
+
+		// Initialize the proxy engine for this route's target provider
+		p, err := proxy.NewJanusProxy(providerCfg.BaseURL)
+		if err != nil {
+			log.Fatalf("Failed to initialize proxy for %s: %v", route.Path, err)
+		}
+
+		// Register the proxy to handle this path
+		// We wrap it in a handler function to inject the API key if needed
+		mux.HandleFunc(route.Path, func(w http.ResponseWriter, r *http.Request) {
+			// Forward the provider's API key in the Authorization header
+			if providerCfg.APIKey != "" {
+				r.Header.Set("Authorization", "Bearer "+providerCfg.APIKey)
+			}
+			p.ServeHTTP(w, r)
+		})
+	}
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)
 	fmt.Printf("Server starting on port %s...\n", addr)
