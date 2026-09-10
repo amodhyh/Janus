@@ -7,6 +7,7 @@ import (
 
 	"janus/internal/config"
 	"janus/internal/proxy"
+	"janus/internal/middleware"
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	
+	
 	// Map configured routes to the proxy handlers
 	for _, route := range cfg.Routes {
 		providerName := route.PrimaryProvider
@@ -40,12 +42,24 @@ func main() {
 			log.Fatalf("Failed to initialize proxy for %s: %v", route.Path, err)
 		}
 
-		mux.HandleFunc(route.Path, func(w http.ResponseWriter, r *http.Request) {
+		proxyHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if providerCfg.APIKey != "" {
 				r.Header.Set("Authorization", "Bearer "+providerCfg.APIKey)
 			}
+
 			p.ServeHTTP(w, r)
 		})
+
+		var finalHandler http.Handler = proxyHandler
+
+		if route.Security.Enabled{
+			finalHandler = middleware.PromptInterceptor(proxyHandler)
+		}
+
+		mux.Handle(route.Path, finalHandler)
+
+		
+
 	}
 
 	addr := fmt.Sprintf(":%d", cfg.Server.Port)

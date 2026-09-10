@@ -13,10 +13,10 @@ func NewJanusProxy(target string) (*httputil.ReverseProxy, error) {
 		return nil, err
 	}
 
-	// 2. Initialize the reverse proxy engine
+	// Initialize the reverse proxy engine
 	proxy := httputil.NewSingleHostReverseProxy(remote)
 
-	// 3. The "Director" modifies the request before it leaves Janus
+	// The "Director" modifies the request before it leaves Janus
 	proxy.Rewrite = func(r *httputil.ProxyRequest) {
 		// Point the request to the target provider (e.g., Ollama, OpenAI)
 		r.SetURL(remote)
