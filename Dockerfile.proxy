@@ -1,0 +1,31 @@
+# --------------Build Stage------------
+ARG GOLANG_VERSION="1.23"
+
+FROM golang:${GOLANG_VERSION} as build
+
+# Enviroment Variables
+# Static Linking of Libraries, no need for OS C libs
+ENV CGO_ENABLED=0
+# GO Os target
+ENV GOOS="linux"
+
+
+WORKDIR /app
+
+COPY go.mod go.sum ./ 
+RUN go mod download
+
+COPY ./cmd ./cmd
+COPY ./config ./config
+COPY ./internal ./internal
+COPY ./proto ./proto
+
+RUN go build -o /janus-proxy ./cmd/janus
+
+# ---------RUN Stage-----------
+
+FROM scratch
+COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=build /janus-proxy /janus-proxy
+
+ENTRYPOINT [ "/janus-proxy" ]

@@ -2,11 +2,6 @@
 .env
 *.jpg
 
-# Ignore all markdown files except README.md
-*.md
-!README.md
-!readme.md
-*.html
 
 # Build artifacts
 /janus
@@ -14,3 +9,7 @@ janus.exe
 *.exe
 *.test
 *.out
+
+.janusenv
+/articles__pycache__/
+*.pyc
