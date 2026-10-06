@@ -3,9 +3,9 @@
 import grpc
 import warnings
 
-from v1 import janus_pb2 as v1_dot_janus__pb2
+from . import janus_pb2 as v1_dot_janus__pb2
 
-GRPC_GENERATED_VERSION = '1.83.1'
+GRPC_GENERATED_VERSION = '1.84.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 

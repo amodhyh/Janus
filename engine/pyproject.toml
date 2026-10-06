@@ -1,0 +1,12 @@
+[build-system]                                          
+    # Added "wheel" to satisfy older pip versions           
+    requires = ["setuptools", "wheel"]                      
+    build-backend = "setuptools.build_meta"                 
+                                                            
+[project]                                               
+    name = "janus-engine"                                   
+    version = "0.1.0"                                       
+                                                            
+# Explicitly tell setuptools which folders contain our  Python code                                               
+[tool.setuptools.packages.find]                         
+include = ["pb*", "services*"]    

@@ -29,7 +29,8 @@
 ## Next Step Immediately Ahead
 
 - **Current Activity**: Implementing the IPC Bridge logic (gRPC server and client) using the successfully generated Go and Python protobuf stubs.
+- **Architectural Decision**: We will temporarily use a `threading.Lock()` around the SLM inference in the Python engine to prevent GIL-released PyTorch VRAM thrashing. Once the Go-Python IPC is stable, we will refactor to use Dynamic Batching.
 - **Next Coding Action**: 
-  1. Implement Python gRPC `SecurityEngine` server in `engine/services/AI_Service.py` by inheriting from the generated stubs.
+  1. Overwrite Python gRPC `SecurityEngine` server in `engine/services/AI_Service.py` with the locked baseline.
   2. Implement Go gRPC client in `internal/pb/v1/client.go` to connect to the Python service.
   3. Integrate the Go client into the `PromptInterceptor` middleware to dispatch `InspectionRequest`s.
