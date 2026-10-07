@@ -6,8 +6,9 @@ import (
 	"net/http"
 
 	"janus/internal/config"
-	"janus/internal/proxy"
 	"janus/internal/middleware"
+	pbv1 "janus/internal/pb/v1"
+	"janus/internal/proxy"
 )
 
 func main() {
@@ -27,6 +28,12 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	engineClient,err := pbv1.NewEngineClient("localhost:50051")
+	if err != nil {                        
+        log.Fatalf("Failed to connect to AI Engine: %v", err)                        
+    }                                      
+    defer engineClient.Close()             
+ 
 	
 	
 	// Map configured routes to the proxy handlers
@@ -51,14 +58,15 @@ func main() {
 		})
 
 		var finalHandler http.Handler = proxyHandler
+		
 
 		if route.Security.Enabled{
-			finalHandler = middleware.PromptInterceptor(proxyHandler)
+			secureInterceptor := middleware.PromptInterceptorFactory(engineClient)
+			finalHandler = secureInterceptor(proxyHandler)
 		}
 
 		mux.Handle(route.Path, finalHandler)
 
-		
 
 	}
 
