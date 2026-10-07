@@ -21,16 +21,18 @@
 ### 2. Infrastructure & IPC Status
 - **Dependencies**: Added `requirements.txt` specifying versions for FastAPI, gRPC, Presidio, PyTorch, and Transformers.
 - **Protobuf Contract**: `proto/v1/janus.proto` defined with `Action` enum (`ALLOW`, `DENY`, `MUTATE`), `InspectionRequest`, `InspectionResponse`, and `SecurityEngine` service.
-- **Client Skeleton**: Added `internal/pb/v1/client.go` ready for Go gRPC client implementation.
-- **Branch Status**: Pushed logical commits to `feat/proxy-interceptor-integration`.
+- **Go gRPC Client**: Implemented persistent client in `internal/pb/v1/client.go`.
+- **Python gRPC Server**: Created server in `engine/services/AI_Service.py` with fine-grained concurrency locks (`slm_lock`, `llm_lock`) to protect GPU VRAM.
+- **Integration**: Go `EngineClient` successfully injected into HTTP routing via `PromptInterceptorFactory` closure in `internal/middleware/interceptor.go` and wired in `cmd/janus/main.go`.
+- **Branch Status**: `feat/grpc-ipc` is functionally complete and ready for merge into `main`.
 
 ---
 
 ## Next Step Immediately Ahead
 
-- **Current Activity**: Implementing the IPC Bridge logic (gRPC server and client) using the successfully generated Go and Python protobuf stubs.
-- **Architectural Decision**: We will temporarily use a `threading.Lock()` around the SLM inference in the Python engine to prevent GIL-released PyTorch VRAM thrashing. Once the Go-Python IPC is stable, we will refactor to use Dynamic Batching.
+- **Current Activity**: End-to-end testing of the gRPC bridge, followed by transitioning to Phase 3.
+- **Architectural Decision**: We will implement Server-Sent Events (SSE) streaming interception for the outgoing responses, focusing on low-latency streaming PII redaction without fully buffering the LLM response.
 - **Next Coding Action**: 
-  1. Overwrite Python gRPC `SecurityEngine` server in `engine/services/AI_Service.py` with the locked baseline.
-  2. Implement Go gRPC client in `internal/pb/v1/client.go` to connect to the Python service.
-  3. Integrate the Go client into the `PromptInterceptor` middleware to dispatch `InspectionRequest`s.
+  1. Test the proxy with real HTTP traffic to verify Go-Python gRPC handshakes.
+  2. Merge `feat/grpc-ipc` into `main`.
+  3. Begin Phase 3: Scaffold an outbound response stream interceptor in Go.
