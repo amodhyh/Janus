@@ -28,6 +28,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
+	// AI engine
 	engineClient,err := pbv1.NewEngineClient("localhost:50051")
 	if err != nil {                        
         log.Fatalf("Failed to connect to AI Engine: %v", err)                        
