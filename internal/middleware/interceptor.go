@@ -54,8 +54,10 @@ func PromptInterceptorFactory(client *pbv1.EngineClient) func(http.Handler) http
 				} else {
 					fmt.Printf("[Interceptor] Failed to parse JSON: %v\n", err)
 				}
+				// wrapped by the custom response writer for Stream Interception
+				streamWriter := &JanusHTTPStream{ResponseWriter: w}
 
-				handler.ServeHTTP(w, r)
+				handler.ServeHTTP(streamWriter, r)
 
 			})
 
