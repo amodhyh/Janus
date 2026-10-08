@@ -50,7 +50,7 @@ func (c *EngineClient) InspectPrompt(ctx context.Context, requestID string, prom
 	// We pass the context directly down to gRPC. If the HTTP request drops, this cancels.
 	resp, err := c.client.InspectPrompt(ctx, req)
 	if err != nil {
-		log.Printf("[EngineClient] RPC failed for req %s: %v", requestID, err)
+		log.Printf("[EngineClient] RPC failed for request id: %s\n error: %v", requestID, err)
 		return nil, err
 	}
 

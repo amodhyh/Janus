@@ -1,4 +1,4 @@
-from pb.v1.janus_pb2_grpc import SecurityEngineServicer
+from pb.v1.janus_pb2_grpc import SecurityEngineServicer,add_SecurityEngineServicer_to_server
 from pb.v1.janus_pb2 import InspectionRequest, InspectionResponse
 import grpc
 from concurrent import futures
@@ -12,9 +12,12 @@ security_service=SecurityService()
 server = grpc.server(
     thread_pool = futures.ThreadPoolExecutor(max_workers = 10, 
                                                 thread_name_prefix = "grpc_server"),
+    
     maximum_concurrent_rpcs = 20,
     
     )
+add_SecurityEngineServicer_to_server(servicer= security_service,
+                                     server=server)
     
 server.add_insecure_port('[::]:50051')
 server.start()

@@ -14,19 +14,14 @@ func NewJanusProxy(target string) (*httputil.ReverseProxy, error) {
 	}
 
 	// Initialize the reverse proxy engine
-	proxy := httputil.NewSingleHostReverseProxy(remote)
+	// * used the modern ReverseProxy struct to overcome the rewrite issue
+	proxy := &httputil.ReverseProxy{
+		Rewrite: func(pr *httputil.ProxyRequest) {
+			pr.SetURL(remote)
+			pr.Out.Host=remote.Host
+			pr.SetXForwarded()
+		},
 
-	// The "Director" modifies the request before it leaves Janus
-	proxy.Rewrite = func(r *httputil.ProxyRequest) {
-		// Point the request to the target provider (e.g., Ollama, OpenAI)
-		r.SetURL(remote)
-
-		// Set the Host header to match the target provider.
-		// Many cloud providers (like OpenAI) will reject requests if the Host header is incorrect.
-		r.Out.Host = remote.Host
-
-		// Standard proxy headers
-		r.SetXForwarded()
 	}
 
 	return proxy, nil

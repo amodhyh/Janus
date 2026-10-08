@@ -5,14 +5,14 @@ server:
 redis:
   address: "localhost:6379"
 
-providers:
-  openai:
-    base_url: "https://api.openai.com/v1"
-    # In production, NEVER hardcode keys here. We use ENV variable substitution later.
-    api_key: "sk-your-openai-key" 
-  gemini:
-    base_url: "https://generativelanguage.googleapis.com/v1beta"
-    api_key: "your-gemini-key"
+providers:                                             
+  openai:                                              
+    base_url: "https://api.openai.com"                 
+    api_key: "sk-your-openai-key"                      
+  gemini:                                              
+    base_url: "https://generativelanguage.googleapis.com"                                                     
+    api_key: "your-gemini-key"                         
+                                   
 
 routes:
   - path: "/v1/chat/completions"
