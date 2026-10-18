@@ -28,21 +28,33 @@
 
 ---
 
-## Next Step Immediately Ahead
-
-### 3. Outbound Stream Interception (Phase 3)
+## 3. Outbound Stream Interception & E2E Testing (Phase 3)
 - **Streaming Middleware**: Created `internal/middleware/stream_interceptor.go`.
 - **Custom ResponseWriter**: Implemented `JanusHTTPStream` using Go interface embedding to inherit `http.ResponseWriter` methods.
 - **SSE Hijacking**: Overrode `Write()` for on-the-fly string replacement (de-redaction) and implemented `http.Flusher` to prevent response buffering.
 - **Integration**: Wired the custom `JanusHTTPStream` into the main `interceptor.go` flow.
-- **Branch Status**: `feat/streaming-pii-redaction` is functionally complete and ready for merge into `main`.
+- **E2E Testing (Walking Skeleton)**: Successfully proved the full Go -> gRPC -> Python -> Go -> External Provider -> Client pipeline using Postman.
+- **Branch Status**: `feat/streaming-pii-redaction` and E2E core routing bugfixes have been merged into `main`.
 
 ---
 
 ## Next Step Immediately Ahead
 
-- **Current Activity**: Infrastructure foundation is complete. Moving towards live integration testing or intelligence engine development.
-- **Next Coding Action**: (Pending decision)
-  - Option A: End-to-end testing with live HTTP traffic (Postman/cURL).
-  - Option B: Integrate PyTorch/Transformers into the Python Security Engine.
-  - Option C: Implement Redis backend for dynamic PII state mapping.
+- **Current Activity**: Pass 1 (Deterministic/Regex Inspection) fully wired, integrated with Go proxy plane, and verified end-to-end via automated tests.
+- **Completed in Pass 1 Milestone**:
+  - Implemented `RegexStage` in `engine/pipeline/regex_analyze.py` adhering to `PipelineStage` protocol.
+  - Added pre-compiled patterns for RFC 5322 Email, Credit Cards (Visa, MC, Amex, Discover with delimiters), SSN, and high-entropy Secrets (OpenAI, AWS, GitHub, PEM keys).
+  - Added $O(1)$-space, zero-allocation Luhn algorithm check to eliminate credit card false positives on order IDs.
+  - Implemented sub-millisecond short-circuit rejection (`DTODecision.DENY`, `is_final=True`) for hardcoded jailbreaks.
+  - Wired `RegexStage` into `SecurityService.InspectPrompt` in `engine/services/AI_Service.py`, mapping `PipelineDTO` decisions to gRPC `InspectionResponse`.
+  - Updated Go proxy middleware in `internal/middleware/interceptor.go` to handle `Action_ACTION_MUTATE` (rewriting `r.Body` and `Content-Length` headers with sanitized prompts).
+  - Resolved root vs engine relative/absolute module imports across polyglot boundaries.
+  - Fixed silent `.gitignore` wildcard bug that masked python files from tracking.
+  - Created automated Go integration test `internal/pb/v1/client_test.go` proving full Go -> gRPC -> Python Pass 1 pipeline passes cleanly.
+- **Branch Status**:
+  - `feat/intelligence-engine` (Pass 1 Milestone) is complete, tested, and ready for commit and merge to `main`.
+- **Next Step Immediately Ahead**:
+  - Merge `feat/intelligence-engine` into `main`.
+  - Create feature branch for Pass 2 (Fast SLM sequence classification / DeBERTa / Presidio PII).
+
+

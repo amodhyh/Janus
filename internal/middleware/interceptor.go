@@ -45,11 +45,19 @@ func PromptInterceptorFactory(client *pbv1.EngineClient) func(http.Handler) http
         					return        
 
 						}
-						if resp.Action==pbv1.Action_ACTION_DENY{
-							http.Error(w,resp.Reason,http.StatusForbidden)
+						if resp.Action == pbv1.Action_ACTION_DENY {
+							http.Error(w, resp.Reason, http.StatusForbidden)
 							return
 						}
-
+						if resp.Action == pbv1.Action_ACTION_MUTATE && resp.MutatedPrompt != "" {
+							payload.Messages[len(payload.Messages)-1].Content = resp.MutatedPrompt
+							if mutatedBytes, err := json.Marshal(payload); err == nil {
+								r.Body = io.NopCloser(bytes.NewBuffer(mutatedBytes))
+								r.ContentLength = int64(len(mutatedBytes))
+								r.Header.Set("Content-Length", fmt.Sprintf("%d", len(mutatedBytes)))
+								fmt.Printf("[Interceptor] Prompt mutated: %s\n", resp.MutatedPrompt)
+							}
+						}
 					}
 				} else {
 					fmt.Printf("[Interceptor] Failed to parse JSON: %v\n", err)
