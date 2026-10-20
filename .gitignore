@@ -1,16 +1,95 @@
-*.png
-.env
-*.jpg
+# =============================================================================
+# Janus — .gitignore
+# =============================================================================
 
-# Build artifacts
+# -----------------------------------------------------------------------------
+# Secrets & local config
+# -----------------------------------------------------------------------------
+.env
+*.env.local
+janus.yaml.local
+
+# -----------------------------------------------------------------------------
+# Model weights & ONNX artefacts  (large binary files — never commit)
+# -----------------------------------------------------------------------------
+models/
+*.safetensors
+*.onnx
+*.gguf
+*.bin
+
+# -----------------------------------------------------------------------------
+# Python
+# -----------------------------------------------------------------------------
+# Virtual environments (root-level venv leaking from .janusenv)
+.janusenv/
+venv/
+.venv/
+Include/
+Lib/
+Scripts/
+share/
+pyvenv.cfg
+
+# Byte-compiled / cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+MANIFEST
+
+# Installer downloaded into project root
+python-*.exe
+
+# -----------------------------------------------------------------------------
+# Go
+# -----------------------------------------------------------------------------
+# Build output
 /janus
 janus.exe
 *.exe
 *.test
 *.out
 
-.janusenv
+# Generated protobuf stubs — regenerate with generate.ps1
+# Uncomment the line below if you want to exclude generated pb.go files.
+# **/*.pb.go
+
+# -----------------------------------------------------------------------------
+# Editor & IDE
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+launch.json
+
+# -----------------------------------------------------------------------------
+# Images & generated media
+# -----------------------------------------------------------------------------
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.gif
+*.webp
+
+# -----------------------------------------------------------------------------
+# Docs & scratch files dumped in project root
+# -----------------------------------------------------------------------------
 articles/
-__pycache__/
-*.pyc
-*.egg-info/
+Architecturing\ Janus.html
+Architecturing\ Janus.md
+architecture.png
+architecture.svg
+janus_architecture_diagram.jpg
+ARCHITECTURE.md
+SESSION_PROGRESS.md
