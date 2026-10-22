@@ -87,4 +87,9 @@ class Classifier_Stage():
                            action=DTODecision.DENY , 
                            is_final=True , 
                            reason=f"Detection Model(Small) result = {injection_prob*100}% chance of this is an injection")
- 
+
+@lru_cache(maxsize=1)
+def get_classifier() -> Classifier_Stage:
+   '''Get the global Classifier_Stage instance (model is loaded on first call)'''
+   get_session()
+   return Classifier_Stage()

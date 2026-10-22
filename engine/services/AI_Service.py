@@ -12,9 +12,9 @@ from concurrent import futures
 import threading
 
 try:
-    from pipeline import RegexStage, DTODecision
+    from pipeline import RegexStage, DTODecision, get_classifier
 except (ImportError, ModuleNotFoundError):
-    from engine.pipeline import RegexStage, DTODecision
+    from engine.pipeline import RegexStage, DTODecision, get_classifier
 
 
 class SecurityService(SecurityEngineServicer):
@@ -24,7 +24,7 @@ class SecurityService(SecurityEngineServicer):
         super().__init__()
         print("Initiating Janus Security Pipeline...")
         self.regex_stage = RegexStage()
-        self.classifier_light = None
+        self.classifier_light = get_classifier()
         self.classifier_llm = None
         self.slm_lock = threading.Lock()
         self.llm_lock = threading.Lock()
@@ -47,8 +47,17 @@ class SecurityService(SecurityEngineServicer):
         current_prompt = regex_dto.prompt
         has_mutated = (regex_dto.action == DTODecision.MUTATE)
         
-        #  Fast SLM Inspection (Planned for Pass 2)
-        # Future: Pass current_prompt to self.classifier_light under self.slm_lock
+        #  Fast SLM Inspection
+        with self.slm_lock:
+            slm_dto = self.classifier_light.process(current_prompt)
+
+        if slm_dto.action == DTODecision.DENY:
+            return InspectionResponse(
+                action=janus_pb2.ACTION_DENY,
+                mutated_prompt="",
+                reason=slm_dto.reason or "Prompt injection detected"
+            )
+        # Uncertain (MUTATE, not final) falls through to the planned LLM stage
         
         # If Pass 1 sanitized sensitive PII/secrets, return the mutated prompt
         if has_mutated:
