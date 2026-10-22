@@ -76,22 +76,18 @@ def test_long_prompt_is_truncated_not_rejected(stage):
     assert dto.action in (DTODecision.ALLOW, DTODecision.DENY, DTODecision.MUTATE)
 
 
-# --- fake session: pins the 0.48-0.52 uncertain band exactly ---
+# --- fake session: pins the confident / gray-area thresholds (docs: >95% decides, else judge) ---
 
-@pytest.mark.parametrize("benign_prob, expected", [
-    (0.90, DTODecision.ALLOW),
-    (0.53, DTODecision.ALLOW),
-    (0.52, DTODecision.MUTATE),
-    (0.51, DTODecision.MUTATE),
-    (0.50, DTODecision.MUTATE),
-    (0.49, DTODecision.MUTATE),
-    (0.48, DTODecision.MUTATE),
-    (0.47, DTODecision.DENY),
-    (0.10, DTODecision.DENY),
+@pytest.mark.parametrize("benign_prob, expected, is_final", [
+    (0.99, DTODecision.ALLOW, True),
+    (0.96, DTODecision.ALLOW, True),
+    (0.94, DTODecision.MUTATE, False),
+    (0.50, DTODecision.MUTATE, False),
+    (0.06, DTODecision.MUTATE, False),
+    (0.04, DTODecision.DENY, True),
+    (0.01, DTODecision.DENY, True),
 ])
-def test_decision_thresholds(benign_prob, expected):
-    assert classify_with_benign_prob(benign_prob).action == expected
-
-
-def test_uncertain_band_is_not_final():
-    assert not classify_with_benign_prob(0.50).is_final
+def test_decision_thresholds(benign_prob, expected, is_final):
+    dto = classify_with_benign_prob(benign_prob)
+    assert dto.action == expected
+    assert dto.is_final == is_final
