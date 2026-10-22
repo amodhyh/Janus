@@ -1,6 +1,7 @@
 import onnxruntime as ort
+import json
 import logging
-from transformers import AutoConfig, AutoTokenizer
+from transformers import AutoTokenizer
 import numpy as np
 from functools import lru_cache
 
@@ -32,7 +33,9 @@ def get_session():
    tokenizer = AutoTokenizer.from_pretrained(MODEL_DIR)
 
    # Resolve class indices from the model config instead of assuming an order
-   label2id = {v.lower(): int(k) for k, v in AutoConfig.from_pretrained(MODEL_DIR).id2label.items()}
+   with open(f"{MODEL_DIR}/config.json", encoding="utf-8") as f:
+      id2label = json.load(f)["id2label"]
+   label2id = {v.lower(): int(k) for k, v in id2label.items()}
    return session, tokenizer, label2id["benign"], label2id["injection"]
 
 def softmax(x, axis=-1):
