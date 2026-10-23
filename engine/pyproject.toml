@@ -10,3 +10,6 @@
 # Explicitly tell setuptools which folders contain our  Python code                                               
 [tool.setuptools.packages.find]                         
 include = ["pb*", "services*"]    
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
