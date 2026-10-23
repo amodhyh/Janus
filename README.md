@@ -227,6 +227,8 @@ python -m pytest -q
 
 The judge can be changed with `JANUS_JUDGE_MODEL`, `JANUS_OLLAMA_URL` and `JANUS_JUDGE_TIMEOUT`; see `docs/ARCHITECTURE.md`, section 5.4.
 
+**Agents:** Janus currently inspects only the last chat message and does not yet cover tool results or tool calls. The gaps and the plan to close them are in `docs/AGENTIC_TRANSITION.md`.
+
 ```Yaml
 server:
   port: 8080

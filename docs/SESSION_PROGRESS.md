@@ -80,6 +80,8 @@
 - Verified with the real models over gRPC. 53 tests pass.
 
 ### Next Steps
+- **Agentic transition** (see `docs/AGENTIC_TRANSITION.md`): fail closed on unparseable bodies, parse full OpenAI/Anthropic message formats, inspect every message with its role (tool results as untrusted), inspect model tool calls, add real request/session IDs. Planned, not implemented.
+- Deployment: make the engine address and model path configurable, add engine Dockerfile and Compose, add a pluggable judge backend (Ollama locally, Amazon Bedrock on AWS), then Terraform and a GitHub Actions pipeline with OIDC. Target a short-lived AWS demo that is destroyed afterwards.
 - Label the logged gray-area decisions (review page or script) to calibrate the judge; consider a dashboard once there is data (see Pass 4 below).
 - Warm the judge model at engine startup so the first request never pays the cold load.
 - Build a labelled evaluation set (for example from `deepset/prompt-injections` and `leolee99/NotInject`) to tune the 5%/95% thresholds and the judge rubric, and to decide whether INT8 is safe.
