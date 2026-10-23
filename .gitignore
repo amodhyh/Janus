@@ -98,3 +98,6 @@ data/
 
 # Runtime logs from scripts/start.ps1
 logs/
+
+# Decision log database (runtime output)
+data/
