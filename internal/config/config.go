@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -59,6 +60,10 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, err
 	}
 
+	// Expand ${VAR} and ${VAR:-default} references so secrets and per-environment
+	// values come from the environment instead of the committed file.
+	data = []byte(os.Expand(string(data), expandVar))
+
 	// Unmarshal YAML into our Go Struct.
 	var cfg Config
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
@@ -66,4 +71,13 @@ func LoadConfig(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+// expandVar resolves "VAR" or "VAR:-default" against the environment.
+func expandVar(ref string) string {
+	name, fallback, hasDefault := strings.Cut(ref, ":-")
+	if v := os.Getenv(name); v != "" || !hasDefault {
+		return v
+	}
+	return fallback
 }

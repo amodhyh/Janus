@@ -1,6 +1,8 @@
 import onnxruntime as ort
 import json
 import logging
+import os
+from pathlib import Path
 from transformers import AutoTokenizer
 import numpy as np
 from functools import lru_cache
@@ -11,11 +13,13 @@ try:
 except (ImportError, ModuleNotFoundError):
     from engine.pipeline import PipelineDTO, DTODecision
 
-TOKEN_LIMIT = 512
+TOKEN_LIMIT = int(os.getenv("JANUS_SLM_TOKEN_LIMIT", "512"))
 # Pass 2 only decides when confident; the gray area in between goes to the LLM judge.
-DENY_INJECTION_PROB = 0.95
-ALLOW_INJECTION_PROB = 0.05
-MODEL_DIR = "../models/piguard_onnx"
+DENY_INJECTION_PROB = float(os.getenv("JANUS_SLM_DENY_PROB", "0.95"))
+ALLOW_INJECTION_PROB = float(os.getenv("JANUS_SLM_ALLOW_PROB", "0.05"))
+# Default is anchored to the repo root so it works from any working directory.
+DEFAULT_MODEL_DIR = Path(__file__).resolve().parents[2] / "models" / "piguard_onnx"
+MODEL_DIR = os.getenv("JANUS_SLM_MODEL_DIR", str(DEFAULT_MODEL_DIR))
 
 @lru_cache(maxsize=1)
 def get_session():
