@@ -89,7 +89,7 @@ The Intelligence Plane is responsible for **semantic security enforcement** usin
 
 ### Core Responsibilities
 
-- Detecting adversarial prompt injections (jailbreak attempts)
+- Detecting adversarial prompt injections (jailbreak attempts) with a tiered pipeline: regex signatures, a fast classifier, and a small local LLM judge for gray-area prompts (see `docs/ARCHITECTURE.md`, section 5)
 - Identifying sensitive entities requiring context (e.g., PERSON, ORG)
 - Performing context-aware redaction
 
@@ -193,6 +193,7 @@ Janus acts as a **drop-in reverse proxy** for any OpenAI-compatible API:
 
 - Go 1.21+
 - Python 3.10+
+- [Ollama](https://ollama.com) with a small judge model (default `phi4-mini`, about 2.9GB of VRAM)
 - Access to an AI provider (API key or local deployment)
 
 ---
@@ -210,7 +211,24 @@ go build -o janus-proxy cmd/main.go
 
 # Setup the Python Intelligence Engine
 pip install -r requirements.txt
+
+# Build the Pass 2 classifier (downloads PIGuard, exports ONNX, verifies it against PyTorch)
+python scripts/quantize_classifier.py
+
+# Pull the Pass 3 judge model
+ollama pull phi4-mini
+
+# Run the engine (from engine/, so relative model paths resolve)
+cd engine && python main.py
+
+# Run the tests (tests marked "integration" need Ollama and skip themselves otherwise)
+python -m pytest -q
 ```
+
+The judge can be changed with `JANUS_JUDGE_MODEL`, `JANUS_OLLAMA_URL` and `JANUS_JUDGE_TIMEOUT`; see `docs/ARCHITECTURE.md`, section 5.4.
+
+**Agents:** Janus currently inspects only the last chat message and does not yet cover tool results or tool calls. The gaps and the plan to close them are in `docs/AGENTIC_TRANSITION.md`.
+
 ```Yaml
 server:
   port: 8080

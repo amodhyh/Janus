@@ -92,4 +92,12 @@ architecture.png
 architecture.svg
 janus_architecture_diagram.jpg
 ARCHITECTURE.md
-SESSION_PROGRESS.md
+SESSION_PROGRESS.md
+# runtime decision log (SQLite)
+data/
+
+# Runtime logs from scripts/start.ps1
+logs/
+
+# Decision log database (runtime output)
+data/

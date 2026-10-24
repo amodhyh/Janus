@@ -3,15 +3,15 @@ server:
   debug: true
 
 redis:
-  address: "localhost:6379"
+  address: "${JANUS_REDIS_ADDR:-localhost:6379}"
 
 providers:                                             
   openai:                                              
     base_url: "https://api.openai.com"                 
-    api_key: "sk-your-openai-key"                      
+    api_key: "${OPENAI_API_KEY}"                      
   gemini:                                              
     base_url: "https://generativelanguage.googleapis.com"                                                     
-    api_key: "your-gemini-key"                         
+    api_key: "${GEMINI_API_KEY}"                         
                                    
 
 routes:

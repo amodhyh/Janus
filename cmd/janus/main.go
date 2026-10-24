@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	"janus/internal/config"
 	"janus/internal/middleware"
@@ -11,10 +14,20 @@ import (
 	"janus/internal/proxy"
 )
 
+func envOr(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
 func main() {
+	// Optional: real environment variables win over .env.
+	_ = godotenv.Load()
+
 	fmt.Println("Starting Janus AI Gateway...")
 
-	cfg, err := config.LoadConfig("config/janus.yaml")
+	cfg, err := config.LoadConfig(envOr("JANUS_CONFIG", "config/janus.yaml"))
 	if err != nil {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
@@ -29,7 +42,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	// AI engine
-	engineClient,err := pbv1.NewEngineClient("localhost:50051")
+	engineClient,err := pbv1.NewEngineClient(envOr("JANUS_ENGINE_ADDR", "localhost:50051"))
 	if err != nil {                        
         log.Fatalf("Failed to connect to AI Engine: %v", err)                        
     }                                      

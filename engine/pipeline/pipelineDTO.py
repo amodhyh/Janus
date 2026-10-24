@@ -17,3 +17,5 @@ class PipelineDTO:
     prompt: str
     is_final: bool = False
     reason: Optional[str] = None
+    score: Optional[float] = None   # classifier injection probability, when a stage has one
+    error: Optional[str] = None     # set when a stage degraded (e.g. the judge was unreachable)

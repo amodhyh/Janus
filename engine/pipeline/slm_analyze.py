@@ -1,6 +1,8 @@
 import onnxruntime as ort
 import json
 import logging
+import os
+from pathlib import Path
 from transformers import AutoTokenizer
 import numpy as np
 from functools import lru_cache
@@ -11,8 +13,13 @@ try:
 except (ImportError, ModuleNotFoundError):
     from engine.pipeline import PipelineDTO, DTODecision
 
-TOKEN_LIMIT = 512
-MODEL_DIR = "../models/piguard_onnx"
+TOKEN_LIMIT = int(os.getenv("JANUS_SLM_TOKEN_LIMIT", "512"))
+# Pass 2 only decides when confident; the gray area in between goes to the LLM judge.
+DENY_INJECTION_PROB = float(os.getenv("JANUS_SLM_DENY_PROB", "0.95"))
+ALLOW_INJECTION_PROB = float(os.getenv("JANUS_SLM_ALLOW_PROB", "0.05"))
+# Default is anchored to the repo root so it works from any working directory.
+DEFAULT_MODEL_DIR = Path(__file__).resolve().parents[2] / "models" / "piguard_onnx"
+MODEL_DIR = os.getenv("JANUS_SLM_MODEL_DIR", str(DEFAULT_MODEL_DIR))
 
 @lru_cache(maxsize=1)
 def get_session():
@@ -70,26 +77,24 @@ class Classifier_Stage():
       benign_prob = float(probs[benign_idx])
       injection_prob = float(probs[injection_idx])
       
-      logging.info(f"{prompt[0:20]} \n---RESULT---\nBENIGN = {benign_prob}\nINJECTION = {injection_prob}")
+      logging.info(f"SLM result: benign={benign_prob:.4f} injection={injection_prob:.4f}")
       
-      if 0.48 <= benign_prob <= 0.52:
-         return PipelineDTO(
-            prompt=prompt,
-            action=DTODecision.MUTATE,
-            is_final=False,
-            reason=f"Detection Model(Small) result = {benign_prob}, more checking up required"
-            
-                           )
-      elif benign_prob > 0.52:
-         return PipelineDTO(prompt=prompt,
-                           action=DTODecision.ALLOW , 
-                           is_final=True , 
-                           reason=f"Detection Model(Small) result = {benign_prob*100}% chance of this is Safe")
-      else: 
-         return PipelineDTO(prompt=prompt,
-                           action=DTODecision.DENY , 
-                           is_final=True , 
+      if injection_prob >= DENY_INJECTION_PROB:
+         return PipelineDTO(prompt=prompt, score=injection_prob,
+                           action=DTODecision.DENY ,
+                           is_final=True ,
                            reason=f"Detection Model(Small) result = {injection_prob*100}% chance of this is an injection")
+      elif injection_prob <= ALLOW_INJECTION_PROB:
+         return PipelineDTO(prompt=prompt, score=injection_prob,
+                           action=DTODecision.ALLOW ,
+                           is_final=True ,
+                           reason=f"Detection Model(Small) result = {benign_prob*100}% chance of this is Safe")
+      else:
+         # Gray area: not final, escalate to the LLM judge (Pass 3)
+         return PipelineDTO(prompt=prompt, score=injection_prob,
+                           action=DTODecision.MUTATE,
+                           is_final=False,
+                           reason=f"Detection Model(Small) result = {injection_prob*100}% injection, more checking up required")
 
 @lru_cache(maxsize=1)
 def get_classifier() -> Classifier_Stage:
